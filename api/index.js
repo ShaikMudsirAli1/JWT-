@@ -25,7 +25,7 @@ const secretKey = "mySecretKey";
 // JWT Secret Key
 const refreshKey = "myRefreshKey";
 
-// Middleware
+// Middleware Function
 app.use(express.json());
 
 // Verify JWT
@@ -49,7 +49,7 @@ const verifyToken = (req, res, next) => {
 
 const generateAccessToken = (user) => {
   return jwt.sign({ id: user.id, isAdmin: user.isAdmin }, secretKey, {
-    expiresIn: "30s",
+    expiresIn: "50s",
   });
 };
 
@@ -82,18 +82,6 @@ app.post("/api/login", (req, res) => {
   }
 });
 
-// Delete Route
-app.delete("/api/users/:userId", verifyToken, (req, res) => {
-  const { userId } = req.params;
-  const { id, isAdmin } = req.user;
-
-  if (id === userId || isAdmin) {
-    res.status(200).json("User has been deleted.");
-  } else {
-    res.status(403).json({ error: "You are not allowed to delete this user!" });
-  }
-});
-
 let tokenRefreshs = [];
 
 // Refresh Route
@@ -123,6 +111,25 @@ app.post("/api/refresh", (req, res) => {
   });
 
   // If everything is ok, create new access token, refresh token send to the user
+});
+
+// Delete Route
+app.delete("/api/users/:userId", verifyToken, (req, res) => {
+  const { userId } = req.params;
+  const { id, isAdmin } = req.user;
+
+  if (id === userId || isAdmin) {
+    res.status(200).json("User has been deleted.");
+  } else {
+    res.status(403).json({ error: "You are not allowed to delete this user!" });
+  }
+});
+
+// Logout Route
+app.post("/api/logout", verifyToken, (req, res) => {
+  const tokenRefresh = req.body.token;
+  tokenRefreshs = tokenRefreshs.filter((token) => token !== tokenRefresh);
+  res.status(200).json("You logged out successfully.");
 });
 
 // Start the server
